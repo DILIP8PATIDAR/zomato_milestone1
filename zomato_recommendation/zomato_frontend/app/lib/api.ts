@@ -19,7 +19,7 @@ export async function fetchRecommendations(
   } catch {
     throw new Error(
       `Cannot reach the backend at ${API_BASE}. ` +
-      `Please start the Flask server: python3 api.py`
+      `Ensure the Railway backend is deployed and CORS allows your Vercel domain.`
     );
   }
 

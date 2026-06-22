@@ -18,11 +18,22 @@ from output.formatter import format_recommendations
 
 app = Flask(__name__)
 
-_ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000",
-)
-CORS(app, origins=[o.strip() for o in _ALLOWED_ORIGINS.split(",") if o.strip()])
+_DEFAULT_CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    r"https://.*\.vercel\.app",  # Vercel production + preview deploys
+]
+
+
+def _cors_origins() -> list[str]:
+    origins = list(_DEFAULT_CORS_ORIGINS)
+    extra = os.getenv("ALLOWED_ORIGINS", "")
+    if extra:
+        origins.extend(part.strip() for part in extra.split(",") if part.strip())
+    return origins
+
+
+CORS(app, origins=_cors_origins())
 
 
 # ---------------------------------------------------------------------------
