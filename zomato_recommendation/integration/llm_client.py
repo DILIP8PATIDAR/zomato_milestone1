@@ -7,7 +7,19 @@ import time
 from groq import Groq
 from config import GROQ_API_KEY, GROQ_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS
 
-_client = Groq(api_key=GROQ_API_KEY)
+_client: Groq | None = None
+
+
+def _get_client() -> Groq:
+    """Create the Groq client on first use so the app can boot without the key."""
+    global _client
+    if _client is None:
+        if not GROQ_API_KEY:
+            raise RuntimeError(
+                "GROQ_API_KEY is not set. Add it in your Railway environment variables."
+            )
+        _client = Groq(api_key=GROQ_API_KEY)
+    return _client
 
 
 def call_groq(prompt: str, retries: int = 3) -> list[dict]:
@@ -18,7 +30,7 @@ def call_groq(prompt: str, retries: int = 3) -> list[dict]:
     """
     for attempt in range(retries):
         try:
-            response = _client.chat.completions.create(
+            response = _get_client().chat.completions.create(
                 model=GROQ_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=LLM_TEMPERATURE,
