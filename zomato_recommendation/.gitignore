@@ -24,11 +24,13 @@ ENV/
 env/
 .env
 .env.*
+!.env.example
 
 # ── Secrets / config ──────────────────────────────────────────────────────────
 
 # API keys — never commit
 *.env
+!.env.example
 .env.local
 .env.*.local
 config/secrets.py
