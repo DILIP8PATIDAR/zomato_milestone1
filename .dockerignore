@@ -1,0 +1,12 @@
+.git
+**/__pycache__
+**/.pytest_cache
+**/.cache
+**/.venv
+**/venv
+**/.env
+**/.env.*
+!**/.env.example
+zomato_recommendation/zomato_frontend/node_modules
+zomato_recommendation/zomato_frontend/.next
+zomato_recommendation/zomato_frontend/out

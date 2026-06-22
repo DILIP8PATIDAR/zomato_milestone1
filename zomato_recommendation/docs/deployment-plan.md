@@ -130,11 +130,11 @@ git push origin main
 
 | Setting | Value |
 |---------|-------|
-| **Root directory** | `zomato_recommendation` |
-| **Builder** | Nixpacks (auto-detected from `requirements.txt`) |
-| **Start command** | Auto-detected from `Procfile` |
+| **Root directory** | `/` (repo root) — **or** `zomato_recommendation` if you prefer subdirectory deploy |
+| **Builder** | Dockerfile (auto-detected from root `Dockerfile`) or Railpack (via root `requirements.txt` + `app.py`) |
+| **Start command** | Auto from `Dockerfile` / `railway.toml` |
 
-Railway will run `pip install -r requirements.txt` and start Gunicorn via the Procfile.
+The repo includes **root-level** `Dockerfile`, `railway.toml`, `app.py`, and `requirements.txt` so Railway can build from the monorepo root without extra dashboard config. Alternatively, set root directory to `zomato_recommendation` to use the backend-local config files.
 
 ### 3.3 Set environment variables
 
@@ -328,7 +328,8 @@ Update `ALLOWED_ORIGINS` and `NEXT_PUBLIC_API_BASE_URL` accordingly.
 | `Application failed to respond` on Railway | Gunicorn not installed or wrong start command | Confirm `Procfile` and `gunicorn` in `requirements.txt` |
 | Build fails on Vercel | Wrong root directory | Set root to `zomato_recommendation/zomato_frontend` |
 | Build fails on Railway | Wrong root directory | Set root to `zomato_recommendation` |
-| `railpack process exited with an error` | Python 3.13 has no precompiled binary on Railway | Repo includes `.python-version` (`3.12.8`) and `runtime.txt` — redeploy |
+| `railpack process exited with an error` | Railway building from repo root, not `zomato_recommendation/` | Root `Dockerfile` + `app.py` are included — redeploy from latest `main` |
+| `Railpack could not determine how to build` | No Python files at repo root | Same fix — use root `Dockerfile` or set Root Directory to `zomato_recommendation` |
 | Railpack still fails after Python pin | Heavy deps or Railpack instability | Switch builder to **Dockerfile** in service settings (repo includes `Dockerfile`) |
 | Works locally, fails in prod | Port / URL mismatch | Production uses Railway `$PORT`, not `5001` |
 
