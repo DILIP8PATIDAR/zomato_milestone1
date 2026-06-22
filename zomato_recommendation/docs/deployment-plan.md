@@ -28,6 +28,7 @@ Deploy the **Flask backend** on [Railway](https://railway.app) and the **Next.js
 7. [Production considerations](#7-production-considerations)
 8. [Troubleshooting](#8-troubleshooting)
 9. [Deployment checklist](#9-deployment-checklist)
+10. [Pausing when not in use](#10-pausing-when-not-in-use)
 
 ---
 
@@ -279,24 +280,24 @@ NEXT_PUBLIC_API_BASE_URL=https://your-railway-domain.up.railway.app
 
 ## 7. Production considerations
 
-### Cold start & dataset download
+### Dataset loading (production)
 
-The backend downloads the Hugging Face dataset on the **first recommendation request** after each deploy or container restart. This can take 30–90 seconds.
+Production loads a baked parquet file (`data/zomato.parquet`, ~550 KB) instead of downloading from Hugging Face at runtime. This keeps memory around **~250 MB** and fits Railway's 512 MB hobby tier.
 
-| Mitigation | How |
-|------------|-----|
-| Increase Gunicorn timeout | Already set to `--timeout 120` in Procfile |
-| Railway health check | Point to `/api/health` (fast, does not preload dataset) |
-| Optional: preload on startup | Add a startup script that calls `load_dataset_as_df()` before Gunicorn starts |
-| Optional: Railway Volume | Mount a persistent volume at `zomato_recommendation/.cache/huggingface` to avoid re-downloads |
+| File | Purpose |
+|------|---------|
+| `data/zomato.parquet` | Committed snapshot used at runtime on Railway |
+| `scripts/bake_dataset.py` | Regenerates parquet from Hugging Face (run locally or during Docker build) |
 
-### Ephemeral filesystem
+Local dev without the parquet file falls back to Hugging Face download (cached under `.cache/huggingface/`).
 
-Railway containers have ephemeral disks. The Hugging Face cache at `.cache/huggingface/` is lost on restart. The app still works — it just re-downloads the dataset.
+### Cold start
+
+After a deploy or container restart, the first `/api/recommend` request may take a few seconds while the parquet loads into memory. `/api/health` stays fast and does not preload the dataset.
 
 ### Memory
 
-The dataset loads into pandas in memory (~50–100 MB). Railway's free/hobby tier (512 MB–1 GB) is sufficient. Upgrade if you see OOM crashes.
+Do **not** load the full Hugging Face dataset into pandas on Railway — it peaks above 800 MB and triggers OOM crashes (`Application failed to respond` / `502`). The parquet path is required for production.
 
 ### HTTPS
 
@@ -323,8 +324,9 @@ Update `ALLOWED_ORIGINS` and `NEXT_PUBLIC_API_BASE_URL` accordingly.
 |---------|--------------|-----|
 | `Cannot reach the backend` in UI | Wrong `NEXT_PUBLIC_API_BASE_URL` or backend down | Verify Railway URL; redeploy Vercel after env change |
 | CORS error in browser console | `ALLOWED_ORIGINS` missing Vercel URL | Add exact Vercel origin (no trailing slash) on Railway |
-| `502` on `/api/recommend` | Groq API key invalid or dataset download failed | Check Railway logs; verify `GROQ_API_KEY` and `HF_DATASET_NAME` |
-| Request times out on first search | Dataset downloading | Wait and retry; increase Gunicorn `--timeout` |
+| `502` on `/api/recommend` | Groq API key invalid, OOM, or worker crash | Check Railway logs; verify `GROQ_API_KEY`; confirm `data/zomato.parquet` is in the deploy |
+| `Cannot reach the backend` (browser) | Railway 502 without CORS headers (worker crashed) | Same as OOM — redeploy with parquet-based loader; check Railway logs |
+| Request times out on first search | Cold start after sleep/redeploy | Wait and retry; increase Gunicorn `--timeout` |
 | `Application failed to respond` on Railway | Gunicorn not installed or wrong start command | Confirm `Procfile` and `gunicorn` in `requirements.txt` |
 | Build fails on Vercel | Wrong root directory | Set root to `zomato_recommendation/zomato_frontend` |
 | Build fails on Railway | Wrong root directory | Set root to `zomato_recommendation` |
@@ -383,6 +385,123 @@ Vercel → Project → Deployments → select deploy → Build / Runtime logs
 | Service | Platform | Example URL |
 |---------|----------|-------------|
 | Frontend | Vercel | `https://zomato-milestone1.vercel.app` |
-| Backend API | Railway | `https://zomato-api-production.up.railway.app` |
+| Backend API | Railway | `https://zomatomilestone1-production.up.railway.app` |
 | Health check | Railway | `https://<railway-url>/api/health` |
 | Recommend | Railway | `POST https://<railway-url>/api/recommend` |
+
+---
+
+## 10. Pausing when not in use
+
+Stop billing and public access when you are not actively using the app. Backend and frontend are managed separately.
+
+### Recommended combo
+
+| Goal | Backend (Railway) | Frontend (Vercel) |
+|------|-------------------|-------------------|
+| Not using for weeks | **Remove deployment** | **Pause project** |
+| Occasional use, lower cost | **Enable Serverless** | Leave running (Hobby tier is usually free at low traffic) |
+| Prevent surprise bills | Set **usage limit** | Enable **Spend Management** → pause at limit |
+
+Also consider revoking or rotating `GROQ_API_KEY` at [console.groq.com](https://console.groq.com/) so LLM usage cannot accrue if the API is accidentally left reachable.
+
+---
+
+### Backend — Railway
+
+Railway has no one-click “pause”, but these options work:
+
+#### Option A — Remove deployment (best for long idle periods)
+
+Stops compute charges. Service config, env vars, and domain are kept.
+
+1. [railway.app](https://railway.app) → your project → backend service
+2. **Deployments** → **⋯** on the active deployment → **Remove**
+
+**Resume:** **Deployments** → **⋯** on the latest deployment → **Redeploy**, or push to `main`.
+
+#### Option B — Enable Serverless (auto-sleep when idle)
+
+1. Service → **Settings** → **Deploy** → **Serverless**
+2. Toggle **Enable Serverless**
+
+The service sleeps after ~10 minutes with no outbound traffic. The next request wakes it (expect a short cold start; first hit may briefly return 502).
+
+#### Option C — Usage limit (safety net)
+
+1. Workspace → **Usage** → **Set usage limits**
+2. Set an email alert and/or a hard limit
+
+At the hard limit, Railway takes workloads offline for the rest of the billing cycle.
+
+#### CLI (optional)
+
+```bash
+npm i -g @railway/cli
+railway login
+railway link          # select your project + service
+railway down          # remove active deployment (same as Option A)
+railway up            # redeploy when you want it back
+```
+
+Requires a [Railway account token](https://railway.app/account/tokens) or interactive `railway login`.
+
+---
+
+### Frontend — Vercel
+
+#### Option A — Pause project (recommended)
+
+Pauses production. Visitors see **503 DEPLOYMENT_PAUSED**.
+
+**Dashboard**
+
+1. [vercel.com](https://vercel.com) → project **zomato-milestone1**
+2. **Settings**
+3. Use **Pause** / **Resume Service** (banner appears when paused)
+
+**REST API** (if the dashboard control is unavailable on your plan):
+
+```bash
+# Create a token at https://vercel.com/account/tokens
+export VERCEL_TOKEN=your_token_here
+
+curl -X POST \
+  "https://api.vercel.com/v1/projects/<PROJECT_ID>/pause?teamId=<TEAM_ID>" \
+  -H "Authorization: Bearer $VERCEL_TOKEN"
+```
+
+**Resume:** Project **Settings** → **Resume Service**, or:
+
+```bash
+curl -X POST \
+  "https://api.vercel.com/v1/projects/<PROJECT_ID>/unpause?teamId=<TEAM_ID>" \
+  -H "Authorization: Bearer $VERCEL_TOKEN"
+```
+
+#### Option B — Disconnect Git (deploys only)
+
+Project → **Settings** → **Git** → **Disconnect**
+
+This stops auto-deploys on push; the site stays live until you pause or delete the project.
+
+#### CLI (optional)
+
+```bash
+npm i -g vercel
+vercel login
+vercel project ls
+# Pause/unpause is primarily via dashboard or REST API (see above)
+```
+
+---
+
+### Restore after pausing
+
+| Step | Action |
+|------|--------|
+| 1 | Railway: redeploy latest deployment or push to `main` |
+| 2 | Vercel: **Resume Service** in project settings |
+| 3 | Confirm `NEXT_PUBLIC_API_BASE_URL` on Vercel still matches your Railway URL |
+| 4 | Test: `curl https://zomatomilestone1-production.up.railway.app/api/health` |
+| 5 | Open the Vercel URL and run a test search |

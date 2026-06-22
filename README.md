@@ -68,3 +68,9 @@ cd zomato_recommendation
 python3 -m pip install -r requirements-dev.txt
 python3 -m pytest
 ```
+
+## Production deployment
+
+Backend on **Railway**, frontend on **Vercel**. Full setup, troubleshooting, and how to **pause services when not in use**:
+
+→ [zomato_recommendation/docs/deployment-plan.md](zomato_recommendation/docs/deployment-plan.md)
