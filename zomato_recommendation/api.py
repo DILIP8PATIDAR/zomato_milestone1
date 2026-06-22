@@ -6,6 +6,9 @@
 #   GET  /api/health        → health check
 #   POST /api/recommend     → returns ranked restaurant recommendations
 
+import os
+
+import config  # noqa: F401 — load .env before reading ALLOWED_ORIGINS
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -14,7 +17,12 @@ from engine.recommender import recommend
 from output.formatter import format_recommendations
 
 app = Flask(__name__)
-CORS(app)   # Allow cross-origin requests from the frontend (Phase 6)
+
+_ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000",
+)
+CORS(app, origins=[o.strip() for o in _ALLOWED_ORIGINS.split(",") if o.strip()])
 
 
 # ---------------------------------------------------------------------------
@@ -117,5 +125,6 @@ def recommend_endpoint():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("🚀  Starting Zomato Recommendation API on http://localhost:5001")
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get("PORT", 5001))
+    print(f"🚀  Starting Zomato Recommendation API on http://localhost:{port}")
+    app.run(debug=True, port=port)
