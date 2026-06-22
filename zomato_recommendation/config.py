@@ -2,7 +2,18 @@
 # Loads all settings from .env via python-dotenv.
 
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+
+# Use a project-local Hugging Face cache so dataset downloads work in
+# restricted environments (e.g. Cursor sandbox) that block ~/.cache writes.
+_PROJECT_ROOT = Path(__file__).resolve().parent
+_HF_CACHE_DIR = _PROJECT_ROOT / ".cache" / "huggingface"
+_HF_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("HF_HOME", str(_HF_CACHE_DIR))
+os.environ.setdefault("HF_DATASETS_CACHE", str(_HF_CACHE_DIR / "datasets"))
+os.environ.setdefault("HUGGINGFACE_HUB_CACHE", str(_HF_CACHE_DIR / "hub"))
 
 load_dotenv()
 

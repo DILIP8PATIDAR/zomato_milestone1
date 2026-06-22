@@ -1,6 +1,7 @@
 # data/loader.py — Dataset Loader (Phase 1.1)
 # Loads the Zomato dataset from Hugging Face and caches it in memory for the session.
 
+import config  # noqa: F401 — must load first to set HF cache paths
 from datasets import load_dataset
 import pandas as pd
 from config import HF_DATASET_NAME
