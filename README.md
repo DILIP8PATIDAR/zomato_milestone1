@@ -65,5 +65,6 @@ Open **http://localhost:3000** in your browser.
 
 ```bash
 cd zomato_recommendation
+python3 -m pip install -r requirements-dev.txt
 python3 -m pytest
 ```

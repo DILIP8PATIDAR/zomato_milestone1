@@ -328,6 +328,8 @@ Update `ALLOWED_ORIGINS` and `NEXT_PUBLIC_API_BASE_URL` accordingly.
 | `Application failed to respond` on Railway | Gunicorn not installed or wrong start command | Confirm `Procfile` and `gunicorn` in `requirements.txt` |
 | Build fails on Vercel | Wrong root directory | Set root to `zomato_recommendation/zomato_frontend` |
 | Build fails on Railway | Wrong root directory | Set root to `zomato_recommendation` |
+| `railpack process exited with an error` | Python 3.13 has no precompiled binary on Railway | Repo includes `.python-version` (`3.12.8`) and `runtime.txt` — redeploy |
+| Railpack still fails after Python pin | Heavy deps or Railpack instability | Switch builder to **Dockerfile** in service settings (repo includes `Dockerfile`) |
 | Works locally, fails in prod | Port / URL mismatch | Production uses Railway `$PORT`, not `5001` |
 
 ### Viewing logs
@@ -347,7 +349,7 @@ Vercel → Project → Deployments → select deploy → Build / Runtime logs
 ### Before deploy
 
 - [ ] `gunicorn` added to `requirements.txt`
-- [ ] `Procfile` created in `zomato_recommendation/`
+- [ ] `Procfile`, `railway.toml`, `.python-version`, and `Dockerfile` in `zomato_recommendation/`
 - [ ] CORS restricted via `ALLOWED_ORIGINS` (optional but recommended)
 - [ ] Changes committed and pushed to `main`
 

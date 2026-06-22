@@ -1,9 +1,8 @@
-datasets>=2.18.0        # Hugging Face dataset loader
-pandas>=2.0.0           # Data manipulation & filtering
-groq>=0.9.0             # Groq Python SDK
-python-dotenv>=1.0.0    # Secure API key management
-rich>=13.0.0            # CLI output formatting
-flask>=3.0.0            # REST API server (Phase 5.5)
-flask-cors>=4.0.0       # CORS headers for frontend requests (Phase 6)
-gunicorn>=22.0.0        # Production WSGI server (Railway)
-pytest>=8.0.0           # Test runner (Phase 5.6)
+datasets>=2.18.0
+pandas>=2.0.0
+groq>=0.9.0
+python-dotenv>=1.0.0
+rich>=13.0.0
+flask>=3.0.0
+flask-cors>=4.0.0
+gunicorn>=22.0.0
