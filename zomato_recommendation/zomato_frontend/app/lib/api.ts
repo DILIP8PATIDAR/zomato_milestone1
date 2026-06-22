@@ -19,15 +19,26 @@ export async function fetchRecommendations(
   } catch {
     throw new Error(
       `Cannot reach the backend at ${API_BASE}. ` +
-      `Ensure the Railway backend is deployed and CORS allows your Vercel domain.`
+      `The Railway service may be down, restarting, or blocking this origin via CORS.`
     );
   }
 
-  const data = await res.json();
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(
+      `Backend at ${API_BASE} returned an invalid response (HTTP ${res.status}). ` +
+      `Check Railway deploy logs — the server may have run out of memory or crashed.`
+    );
+  }
 
   if (!res.ok) {
+    const payload = data as { error?: string; message?: string };
     throw new Error(
-      (data as { error?: string }).error ?? `Server error ${res.status}`
+      payload.error ??
+        payload.message ??
+        `Server error ${res.status}`
     );
   }
 

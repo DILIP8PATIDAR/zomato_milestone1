@@ -24,11 +24,13 @@ def load_dataset_as_df() -> pd.DataFrame:
         return _CACHE
     try:
         ds = load_dataset(HF_DATASET_NAME, split="train")
+        # Select columns before pandas conversion — the full dataset is ~550 MB
+        # in memory as a DataFrame, which exceeds Railway's default RAM limit.
+        ds = ds.select_columns(REQUIRED_FIELDS)
     except Exception as e:
         raise RuntimeError(
             f"Failed to load dataset '{HF_DATASET_NAME}'. "
             f"Check your internet connection. Error: {e}"
         )
-    df = ds.to_pandas()
-    _CACHE = df[REQUIRED_FIELDS].copy()
+    _CACHE = ds.to_pandas()
     return _CACHE
