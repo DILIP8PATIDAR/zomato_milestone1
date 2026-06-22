@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zomato Dataset — Parquet Preview (First 20 Rows)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0d0f14;
+      --surface:     #161a24;
+      --surface-2:   #1e2333;
+      --border:      #252b3d;
+      --accent:      #f97316;
+      --accent-dim:  rgba(249,115,22,0.12);
+      --accent-glow: rgba(249,115,22,0.25);
+      --green:       #22c55e;
+      --green-dim:   rgba(34,197,94,0.12);
+      --blue:        #3b82f6;
+      --blue-dim:    rgba(59,130,246,0.12);
+      --purple:      #a855f7;
+      --purple-dim:  rgba(168,85,247,0.12);
+      --yellow:      #eab308;
+      --yellow-dim:  rgba(234,179,8,0.12);
+      --red:         #ef4444;
+      --text-1:      #f1f5f9;
+      --text-2:      #94a3b8;
+      --text-3:      #475569;
+      --radius:      12px;
+      --radius-sm:   8px;
+      --shadow:      0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    .header {
+      max-width: 1400px;
+      margin: 0 auto 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .header-icon {
+      font-size: 2.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .header-text h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 60%, #fcd34d 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    .header-text p {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      margin-top: 4px;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-glow);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-top: 8px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Stats Bar ───────────────────────────────────── */
+    .stats-bar {
+      max-width: 1400px;
+      margin: 0 auto 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      transition: border-color 0.2s;
+    }
+    .stat-chip:hover { border-color: var(--accent); }
+    .stat-chip .icon { font-size: 1.1rem; }
+    .stat-chip .label { color: var(--text-2); }
+    .stat-chip .value { font-weight: 600; color: var(--text-1); }
+
+    /* ── Search / Filter bar ─────────────────────────── */
+    .toolbar {
+      max-width: 1400px;
+      margin: 0 auto 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      padding: 10px 12px 10px 36px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .filter-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      padding: 10px 14px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+    .row-count {
+      font-size: 0.8rem;
+      color: var(--text-2);
+      white-space: nowrap;
+      margin-left: auto;
+    }
+    .row-count span { color: var(--accent); font-weight: 600; }
+
+    /* ── Table Container ──────────────────────────────── */
+    .table-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+
+    /* ── Column Headers ──────────────────────────────── */
+    thead {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-2);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+      position: relative;
+    }
+    th:hover { color: var(--accent); }
+    th .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+    }
+    th:hover .sort-icon,
+    th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+    th.sorted { color: var(--accent); }
+
+    /* ── Rows ─────────────────────────────────────────── */
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(249,115,22,0.05); }
+
+    td {
+      padding: 12px 16px;
+      color: var(--text-1);
+      vertical-align: middle;
+    }
+
+    /* Row number */
+    .td-row { color: var(--text-3); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+
+    /* Name */
+    .td-name { font-weight: 600; max-width: 200px; }
+
+    /* Location */
+    .td-location {
+      color: var(--text-2);
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Rating badge */
+    .rating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    .rating-high  { background: var(--green-dim);  color: var(--green); }
+    .rating-mid   { background: var(--yellow-dim); color: var(--yellow);}
+    .rating-low   { background: rgba(239,68,68,0.12); color: var(--red); }
+
+    /* Rating stars */
+    .stars { font-size: 0.65rem; letter-spacing: -1px; }
+
+    /* Budget badge */
+    .budget-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .budget-low    { background: var(--green-dim);  color: var(--green); }
+    .budget-medium { background: var(--blue-dim);   color: var(--blue); }
+    .budget-high   { background: var(--purple-dim); color: var(--purple); }
+
+    /* Cost */
+    .td-cost {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-1);
+    }
+
+    /* Votes */
+    .td-votes {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-2);
+    }
+    .votes-low { color: var(--red); }
+
+    /* Cuisine chips */
+    .cuisine-chips { display: flex; gap: 4px; flex-wrap: wrap; max-width: 240px; }
+    .cuisine-chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 100px;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+
+    /* Boolean pills */
+    .bool-yes {
+      display: inline-flex; align-items: center; gap: 3px;
+      color: var(--green); font-size: 0.75rem; font-weight: 500;
+    }
+    .bool-no {
+      display: inline-flex; align-items: center; gap: 3px;
+      color: var(--text-3); font-size: 0.75rem;
+    }
+
+    /* Rest type */
+    .td-type {
+      color: var(--text-2);
+      font-size: 0.78rem;
+      max-width: 140px;
+    }
+
+    /* ── Footer ──────────────────────────────────────── */
+    .table-footer {
+      padding: 12px 20px;
+      background: var(--surface-2);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-2);
+    }
+    .table-footer span { color: var(--accent); font-weight: 600; }
+
+    /* ── Schema panel ─────────────────────────────────── */
+    .schema-wrap {
+      max-width: 1400px;
+      margin: 24px auto 0;
+    }
+    .schema-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .schema-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .schema-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.2s;
+    }
+    .schema-col:hover { border-color: var(--accent); }
+    .schema-col .col-name { font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text-1); }
+    .schema-col .col-type { color: var(--blue); font-size: 0.7rem; }
+
+    /* ── Empty state ──────────────────────────────────── */
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--text-3);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    /* ── Animation ───────────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .table-wrap { animation: fadeInUp 0.35s ease both; }
+    .stats-bar  { animation: fadeInUp 0.25s ease both; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-icon">🍽️</div>
+  <div class="header-text">
+    <h1>Zomato Restaurant Dataset — Parquet Preview</h1>
+    <p>ManikaSaini/zomato-restaurant-recommendation · Preprocessed · First 20 rows</p>
+    <div class="header-badge">📦 preview.parquet &nbsp;·&nbsp; 9,220 total records</div>
+  </div>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat-chip"><span class="icon">📋</span><span class="label">Rows shown</span><span class="value">20</span></div>
+  <div class="stat-chip"><span class="icon">🗂️</span><span class="label">Columns</span><span class="value">11</span></div>
+  <div class="stat-chip"><span class="icon">🏙️</span><span class="label">Locations</span><span class="value">Banashankari · Basavanagudi · Mysore Rd</span></div>
+  <div class="stat-chip"><span class="icon">⭐</span><span class="label">Avg Rating</span><span class="value" id="avg-rating">—</span></div>
+  <div class="stat-chip"><span class="icon">💰</span><span class="label">Avg Cost for Two</span><span class="value" id="avg-cost">—</span></div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="Search name, cuisine, location…" />
+  </div>
+  <select class="filter-select" id="budget-filter">
+    <option value="">All Budgets</option>
+    <option value="low">Low (≤₹300)</option>
+    <option value="medium">Medium (₹301–800)</option>
+    <option value="high">High (&gt;₹800)</option>
+  </select>
+  <select class="filter-select" id="order-filter">
+    <option value="">Online Order: All</option>
+    <option value="Yes">Online Order: Yes</option>
+    <option value="No">Online Order: No</option>
+  </select>
+  <select class="filter-select" id="sort-col">
+    <option value="">Sort by…</option>
+    <option value="rating-desc">Rating ↓</option>
+    <option value="rating-asc">Rating ↑</option>
+    <option value="cost-desc">Cost ↓</option>
+    <option value="cost-asc">Cost ↑</option>
+    <option value="votes-desc">Votes ↓</option>
+  </select>
+  <div class="row-count">Showing <span id="visible-count">20</span> of <span>20</span> rows</div>
+</div>
+
+<!-- Table -->
+<div class="table-wrap">
+  <div class="table-scroll">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Location</th>
+          <th>Rating</th>
+          <th>Votes</th>
+          <th>Budget</th>
+          <th>Cost for Two</th>
+          <th>Cuisines</th>
+          <th>Type</th>
+          <th>Online Order</th>
+          <th>Book Table</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+  <div class="table-footer">
+    <div>Source: <span>ManikaSaini/zomato-restaurant-recommendation</span> · Phase 1 preprocessed output · <span>preview.parquet</span></div>
+    <div>Schema: <span>11 columns</span></div>
+  </div>
+</div>
+
+<!-- Schema panel -->
+<div class="schema-wrap">
+  <div class="schema-title">📐 Schema — Preprocessed DataFrame</div>
+  <div class="schema-grid">
+    <div class="schema-col"><span class="col-name">name</span><span class="col-type">object</span></div>
+    <div class="schema-col"><span class="col-name">location</span><span class="col-type">object · normalized</span></div>
+    <div class="schema-col"><span class="col-name">cuisines</span><span class="col-type">object</span></div>
+    <div class="schema-col"><span class="col-name">approx_cost</span><span class="col-type">float64 · ₹ for two</span></div>
+    <div class="schema-col"><span class="col-name">rating</span><span class="col-type">float64 · 0–5</span></div>
+    <div class="schema-col"><span class="col-name">votes</span><span class="col-type">int64</span></div>
+    <div class="schema-col"><span class="col-name">online_order</span><span class="col-type">object · Yes/No</span></div>
+    <div class="schema-col"><span class="col-name">book_table</span><span class="col-type">object · Yes/No</span></div>
+    <div class="schema-col"><span class="col-name">rest_type</span><span class="col-type">object</span></div>
+    <div class="schema-col"><span class="col-name">budget_tier</span><span class="col-type">object · derived</span></div>
+    <div class="schema-col"><span class="col-name">cuisines_list</span><span class="col-type">list[str] · derived</span></div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"name":"Jalsa","location":"banashankari","cuisines":"North Indian, Mughlai, Chinese","approx_cost":800.0,"rating":4.1,"votes":775,"online_order":"Yes","book_table":"Yes","rest_type":"Casual Dining","budget_tier":"medium","cuisines_list":"north indian, mughlai, chinese"},{"name":"Spice Elephant","location":"banashankari","cuisines":"Chinese, North Indian, Thai","approx_cost":800.0,"rating":4.1,"votes":787,"online_order":"Yes","book_table":"No","rest_type":"Casual Dining","budget_tier":"medium","cuisines_list":"chinese, north indian, thai"},{"name":"San Churro Cafe","location":"banashankari","cuisines":"Cafe, Mexican, Italian","approx_cost":800.0,"rating":3.8,"votes":918,"online_order":"Yes","book_table":"No","rest_type":"Cafe, Casual Dining","budget_tier":"medium","cuisines_list":"cafe, mexican, italian"},{"name":"Addhuri Udupi Bhojana","location":"banashankari","cuisines":"South Indian, North Indian","approx_cost":300.0,"rating":3.7,"votes":88,"online_order":"No","book_table":"No","rest_type":"Quick Bites","budget_tier":"low","cuisines_list":"south indian, north indian"},{"name":"Grand Village","location":"basavanagudi","cuisines":"North Indian, Rajasthani","approx_cost":600.0,"rating":3.8,"votes":166,"online_order":"No","book_table":"No","rest_type":"Casual Dining","budget_tier":"medium","cuisines_list":"north indian, rajasthani"},{"name":"Timepass Dinner","location":"basavanagudi","cuisines":"North Indian","approx_cost":600.0,"rating":3.8,"votes":286,"online_order":"Yes","book_table":"No","rest_type":"Casual Dining","budget_tier":"medium","cuisines_list":"north indian"},{"name":"Rosewood International Hotel - Bar & Restaurant","location":"mysore road","cuisines":"North Indian, South Indian, Andhra, Chinese","approx_cost":800.0,"rating":3.6,"votes":8,"online_order":"No","book_table":"No","rest_type":"Casual Dining","budget_tier":"medium","cuisines_list":"north indian, south indian, andhra, chinese"},{"name":"Onesta","location":"banashankari","cuisines":"Pizza, Cafe, Italian","approx_cost":600.0,"rating":4.6,"votes":2556,"online_order":"Yes","book_table":"Yes","rest_type":"Casual Dining, Cafe","budget_tier":"medium","cuisines_list":"pizza, cafe, italian"},{"name":"Penthouse Cafe","location":"banashankari","cuisines":"Cafe, Italian, Continental","approx_cost":700.0,"rating":4.0,"votes":324,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, italian, continental"},{"name":"Smacznego","location":"banashankari","cuisines":"Cafe, Mexican, Italian, Momos, Beverages","approx_cost":550.0,"rating":4.2,"votes":504,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, mexican, italian, momos, beverages"},{"name":"Café Down The Alley","location":"banashankari","cuisines":"Cafe","approx_cost":500.0,"rating":4.1,"votes":402,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe"},{"name":"Cafe Shuffle","location":"banashankari","cuisines":"Cafe, Italian, Continental","approx_cost":600.0,"rating":4.2,"votes":150,"online_order":"Yes","book_table":"Yes","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, italian, continental"},{"name":"The Coffee Shack","location":"banashankari","cuisines":"Cafe, Chinese, Continental, Italian","approx_cost":500.0,"rating":4.2,"votes":164,"online_order":"Yes","book_table":"Yes","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, chinese, continental, italian"},{"name":"Caf-Eleven","location":"banashankari","cuisines":"Cafe, Continental","approx_cost":450.0,"rating":4.0,"votes":424,"online_order":"No","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, continental"},{"name":"Cafe Vivacity","location":"banashankari","cuisines":"Cafe","approx_cost":650.0,"rating":3.8,"votes":90,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe"},{"name":"Catch-up-ino","location":"banashankari","cuisines":"Cafe, Fast Food, Continental, Chinese, Momos","approx_cost":800.0,"rating":3.9,"votes":133,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, fast food, continental, chinese, momos"},{"name":"Kirthi's Biryani","location":"banashankari","cuisines":"Chinese, Cafe, Italian","approx_cost":700.0,"rating":3.8,"votes":144,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"chinese, cafe, italian"},{"name":"T3H Cafe","location":"banashankari","cuisines":"Cafe, Italian, American","approx_cost":300.0,"rating":3.9,"votes":93,"online_order":"No","book_table":"No","rest_type":"Cafe","budget_tier":"low","cuisines_list":"cafe, italian, american"},{"name":"360 Atoms Restaurant And Cafe","location":"banashankari","cuisines":"Cafe, Chinese, Continental, Italian","approx_cost":400.0,"rating":3.1,"votes":13,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, chinese, continental, italian"},{"name":"The Vintage Cafe","location":"banashankari","cuisines":"Cafe, French, North Indian","approx_cost":400.0,"rating":3.0,"votes":62,"online_order":"Yes","book_table":"No","rest_type":"Cafe","budget_tier":"medium","cuisines_list":"cafe, french, north indian"}];
+
+let filtered = [...DATA];
+
+function starsFromRating(r) {
+  const full = Math.round(r);
+  return '★'.repeat(full) + '☆'.repeat(5 - full);
+}
+
+function ratingClass(r) {
+  if (r >= 4.0) return 'rating-high';
+  if (r >= 3.5) return 'rating-mid';
+  return 'rating-low';
+}
+
+function cuisineChips(list) {
+  return list.split(',').slice(0, 4).map(c =>
+    `<span class="cuisine-chip">${c.trim()}</span>`
+  ).join('');
+}
+
+function boolPill(v) {
+  return v === 'Yes'
+    ? `<span class="bool-yes">✓ Yes</span>`
+    : `<span class="bool-no">— No</span>`;
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('table-body');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="icon">🔎</div><div>No rows match your filters</div></div></td></tr>`;
+    document.getElementById('visible-count').textContent = '0';
+    return;
+  }
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td class="td-row">${String(i + 1).padStart(2, '0')}</td>
+      <td class="td-name">${r.name}</td>
+      <td class="td-location">${r.location}</td>
+      <td>
+        <span class="rating-badge ${ratingClass(r.rating)}">
+          ${r.rating.toFixed(1)}
+          <span class="stars">${starsFromRating(r.rating)}</span>
+        </span>
+      </td>
+      <td class="td-votes ${r.votes < 50 ? 'votes-low' : ''}">${r.votes < 50 ? '⚠ ' : ''}${r.votes.toLocaleString()}</td>
+      <td><span class="budget-badge budget-${r.budget_tier}">${r.budget_tier}</span></td>
+      <td class="td-cost">₹${r.approx_cost.toLocaleString()}</td>
+      <td><div class="cuisine-chips">${cuisineChips(r.cuisines)}</div></td>
+      <td class="td-type">${r.rest_type}</td>
+      <td>${boolPill(r.online_order)}</td>
+      <td>${boolPill(r.book_table)}</td>
+    </tr>
+  `).join('');
+  document.getElementById('visible-count').textContent = rows.length;
+}
+
+function computeStats(rows) {
+  if (!rows.length) return;
+  const avg_r = (rows.reduce((a, r) => a + r.rating, 0) / rows.length).toFixed(2);
+  const avg_c = Math.round(rows.reduce((a, r) => a + r.approx_cost, 0) / rows.length);
+  document.getElementById('avg-rating').textContent = avg_r + ' ⭐';
+  document.getElementById('avg-cost').textContent = '₹' + avg_c.toLocaleString();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const budget = document.getElementById('budget-filter').value;
+  const order = document.getElementById('order-filter').value;
+  const sort = document.getElementById('sort-col').value;
+
+  filtered = DATA.filter(r => {
+    const matchQ = !q || r.name.toLowerCase().includes(q)
+      || r.cuisines.toLowerCase().includes(q)
+      || r.location.includes(q)
+      || r.rest_type.toLowerCase().includes(q);
+    const matchB = !budget || r.budget_tier === budget;
+    const matchO = !order || r.online_order === order;
+    return matchQ && matchB && matchO;
+  });
+
+  if (sort === 'rating-desc') filtered.sort((a, b) => b.rating - a.rating);
+  else if (sort === 'rating-asc') filtered.sort((a, b) => a.rating - b.rating);
+  else if (sort === 'cost-desc') filtered.sort((a, b) => b.approx_cost - a.approx_cost);
+  else if (sort === 'cost-asc') filtered.sort((a, b) => a.approx_cost - b.approx_cost);
+  else if (sort === 'votes-desc') filtered.sort((a, b) => b.votes - a.votes);
+
+  renderTable(filtered);
+  computeStats(filtered);
+}
+
+document.getElementById('search').addEventListener('input', applyFilters);
+document.getElementById('budget-filter').addEventListener('change', applyFilters);
+document.getElementById('order-filter').addEventListener('change', applyFilters);
+document.getElementById('sort-col').addEventListener('change', applyFilters);
+
+// Initial render
+renderTable(DATA);
+computeStats(DATA);
+</script>
+</body>
+</html>

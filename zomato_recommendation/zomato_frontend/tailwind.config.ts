@@ -1,0 +1,118 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  darkMode: "class",
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        "surface":                    "#1e0f0f",
+        "surface-dim":                "#1e0f0f",
+        "surface-bright":             "#473534",
+        "surface-container-lowest":   "#180a0a",
+        "surface-container-low":      "#271717",
+        "surface-container":          "#2c1b1b",
+        "surface-container-high":     "#372625",
+        "surface-container-highest":  "#423030",
+        "on-surface":                 "#f9dcda",
+        "on-surface-variant":         "#e4bebc",
+        "inverse-surface":            "#f9dcda",
+        "inverse-on-surface":         "#3e2c2b",
+        "outline":                    "#ab8987",
+        "outline-variant":            "#5b403f",
+        "surface-tint":               "#ffb3b1",
+        "primary":                    "#ffb3b1",
+        "on-primary":                 "#680011",
+        "primary-container":          "#ff535a",
+        "on-primary-container":       "#5b000e",
+        "inverse-primary":            "#bb162c",
+        "secondary":                  "#4ae176",
+        "on-secondary":               "#003915",
+        "secondary-container":        "#00b954",
+        "on-secondary-container":     "#004119",
+        "tertiary":                   "#eec200",
+        "on-tertiary":                "#3c2f00",
+        "tertiary-container":         "#cea700",
+        "on-tertiary-container":      "#4e3d00",
+        "error":                      "#ffb4ab",
+        "on-error":                   "#690005",
+        "error-container":            "#93000a",
+        "on-error-container":         "#ffdad6",
+        "background":                 "#1e0f0f",
+        "on-background":              "#f9dcda",
+        "surface-variant":            "#423030",
+        // Zomato brand
+        "zomato-red":                 "#E23744",
+        "zomato-red-dark":            "#B01E2B",
+      },
+      fontFamily: {
+        outfit: ["Outfit", "sans-serif"],
+        inter:  ["Inter", "sans-serif"],
+      },
+      fontSize: {
+        "display-lg":        ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "800" }],
+        "display-lg-mobile": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "800" }],
+        "headline-lg":       ["32px", { lineHeight: "40px", fontWeight: "700" }],
+        "headline-md":       ["24px", { lineHeight: "32px", fontWeight: "700" }],
+        "body-lg":           ["18px", { lineHeight: "28px", fontWeight: "400" }],
+        "body-md":           ["16px", { lineHeight: "24px", fontWeight: "400" }],
+        "label-md":          ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }],
+        "label-sm":          ["12px", { lineHeight: "16px", fontWeight: "500" }],
+      },
+      borderRadius: {
+        sm:   "0.25rem",
+        DEFAULT: "0.5rem",
+        md:   "0.75rem",
+        lg:   "1rem",
+        xl:   "1.5rem",
+        full: "9999px",
+      },
+      spacing: {
+        "container-max":  "1200px",
+        "gutter":         "16px",
+        "margin-desktop": "40px",
+        "margin-mobile":  "20px",
+      },
+      backdropBlur: {
+        xs: "4px",
+        sm: "8px",
+        md: "12px",
+        lg: "20px",
+        xl: "24px",
+      },
+      boxShadow: {
+        "glow-red":   "0 0 24px rgba(226,55,68,0.35)",
+        "glow-card":  "0 0 20px rgba(226,55,68,0.1)",
+        "card":       "0 8px 32px rgba(0,0,0,0.4)",
+      },
+      animation: {
+        shimmer:  "shimmer 1.5s infinite linear",
+        "slide-up": "slideUp 0.5s cubic-bezier(0.22,1,0.36,1) both",
+        "fade-in":  "fadeIn 0.4s ease both",
+        pulse:    "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
+        spin:     "spin 0.8s linear infinite",
+      },
+      keyframes: {
+        shimmer: {
+          "0%":   { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
+        slideUp: {
+          from: { opacity: "0", transform: "translateY(24px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeIn: {
+          from: { opacity: "0" },
+          to:   { opacity: "1" },
+        },
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

@@ -1,0 +1,37 @@
+# ── Root-level .gitignore for the zomato_milestone_1 workspace ───────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Stitch design assets (large, not needed in version control)
+stitch_assets/
+*.zip
+
+# Logs
+*.log
+logs/
+
+# Python artefacts (in case any scripts sit at root level)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+secrets.*
